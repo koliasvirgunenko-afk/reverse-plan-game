@@ -1,0 +1,43 @@
+name: Godot transform unit tests
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: reverse-plan-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  core-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install checksum-verified Godot 4.7.2
+        run: python3 tools/install_godot.py
+      - name: Import and test with the real engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p logs
+          GODOT="$HOME/.cache/reverse-plan-engine/Godot_v4.7.2-stable_linux.x86_64"
+          "$GODOT" --version | tee logs/engine-version.txt
+          "$GODOT" --headless --editor --path . --import --quit 2>&1 | tee logs/import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|Failed to load script' logs/import.log
+          "$GODOT" --headless --path . --script res://tests/core_tests.gd 2>&1 | tee logs/core-tests.log
+          grep -Eq 'CORE_TEST_RESULT.*failed=0' logs/core-tests.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:' logs/core-tests.log
+      - name: Record limited verification scope
+        if: always()
+        run: |
+          mkdir -p logs
+          echo 'Transform tests only. Physics, visuals and playthrough NOT verified. Linux export NOT executed.' > logs/SCOPE.txt
+          cat logs/SCOPE.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-core-diagnostics
+          path: logs/
+          retention-days: 3

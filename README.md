@@ -1,2 +1,9 @@
-# reverse-plan-game
-Обратный план — first-person spatial puzzle game for Linux, built with Godot. Development source, automated checks, and Linux export pipeline.
+# Обратный план
+
+Godot 4.7.2-stable / Linux x86_64.
+Статус: разработка, не готовая игра. Этот коммит добавляет ядро и CI.
+Кампания и ресурсы предыдущего архива ещё не перенесены.
+Проверки ядра не заменяют коллизии, графический прогон и прохождение.
+CI скачивает официальный Godot с SHA-256 и запускает GDScript-тесты.
+Права workflow: contents: read. Логи хранятся 3 дня.
+Экспорт не выполняется: игровая сцена ещё не добавлена.
